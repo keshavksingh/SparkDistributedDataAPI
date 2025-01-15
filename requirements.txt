@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+celery
+pyspark
+delta-spark
+apache-iceberg[spark]
+redis
+python-dotenv

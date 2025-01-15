@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  localredis:
+    image: redis:latest
+    container_name: localredis
+    command: ["redis-server", "--requirepass", "abc123", "--bind", "0.0.0.0"]
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "abc123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  pdgdqdistributeddataanalyzer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pdgdqdistributeddataanalyzer
+    ports:
+      - "8000:8000"
+    depends_on:
+      - localredis
+    environment:
+      - REDIS_HOST=localredis
+      - REDIS_PASSWORD=abc123
+      - CELERY_BROKER=redis://:abc123@localredis:6379/0
+      - CELERY_BACKEND=redis://:abc123@localredis:6379/1
+    networks:
+      - app_network
+    entrypoint: ["/app/entrypoint.sh"]
+
+networks:
+  app_network:
+    driver: bridge
